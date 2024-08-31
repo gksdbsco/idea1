@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>아이디어 공유</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+        h1 {
+            color: #ffffff;
+        }
+        #input-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 400px;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            border: 1px solid #333;
+            background-color: #333;
+            color: #e0e0e0;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px 20px;
+            border-radius: 5px;
+            border: none;
+            background-color: #1e88e5;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            max-width: 200px;
+        }
+        button:hover {
+            background-color: #1565c0;
+        }
+        #cards-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            max-width: 800px;
+        }
+        .card {
+            background-color: #1e1e1e;
+            border: 1px solid #333;
+            border-radius: 5px;
+            padding: 20px;
+            width: 100%;
+            max-width: 200px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
+        .card h2 {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: #1e88e5;
+        }
+        .card p {
+            font-size: 14px;
+            color: #bbbbbb;
+        }
+    </style>
+</head>
+<body>
+    <h1>아이디어 공유</h1>
+    <div id="input-container">
+        <input type="text" id="title-input" placeholder="제목 입력">
+        <input type="text" id="idea-input" placeholder="아이디어 입력">
+        <button id="add-button">추가</button>
+    </div>
+    <div id="cards-container"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCaHg4EwBazVk7e8Hqnf1bvfwEQqKSdBlo",
+            authDomain: "todo-1113b.firebaseapp.com",
+            projectId: "todo-1113b",
+            storageBucket: "todo-1113b.appspot.com",
+            messagingSenderId: "240236025860",
+            appId: "1:240236025860:web:9cdff5b9a9f4a303eebd51",
+            measurementId: "G-1M77VX08HV"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const cardsContainer = document.getElementById('cards-container');
+
+        // Firestore에서 데이터 실시간 수신
+        const q = collection(db, "ideas");
+        onSnapshot(q, (snapshot) => {
+            cardsContainer.innerHTML = ""; // 기존 카드 초기화
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                createCard(data.title, data.idea);
+            });
+        });
+
+        // 카드 생성 함수
+        function createCard(title, idea) {
+            const card = document.createElement('div');
+            card.className = 'card';
+
+            const cardTitle = document.createElement('h2');
+            cardTitle.innerText = title;
+
+            const cardIdea = document.createElement('p');
+            cardIdea.innerText = idea;
+
+            card.appendChild(cardTitle);
+            card.appendChild(cardIdea);
+
+            cardsContainer.appendChild(card);
+        }
+
+        // 카드 추가 기능
+        document.getElementById('add-button').addEventListener('click', async function() {
+            const title = document.getElementById('title-input').value;
+            const idea = document.getElementById('idea-input').value;
+
+            if (title && idea) {
+                try {
+                    await addDoc(collection(db, "ideas"), {
+                        title: title,
+                        idea: idea
+                    });
+                    document.getElementById('title-input').value = '';
+                    document.getElementById('idea-input').value = '';
+                } catch (e) {
+                    console.error("Error adding document: ", e);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
